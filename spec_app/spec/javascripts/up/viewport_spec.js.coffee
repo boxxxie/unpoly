@@ -432,35 +432,6 @@ describe 'up.viewport', ->
         results = up.viewport.all()
         expect(results).toMatchList([viewportElement, up.viewport.root])
 
-    describe 'up.viewport.subtree', ->
-
-      it 'returns descendant viewports of the given element', ->
-        $motherViewport = $fixture('.mother[up-viewport]')
-        $element = $motherViewport.affix('.element')
-        $childViewport = $element.affix('.child[up-viewport]')
-        $grandChildViewport = $childViewport.affix('.grand-child[up-viewport]')
-        actual = up.viewport.subtree($element[0])
-        expected = $childViewport.add($grandChildViewport)
-
-        expect(actual).toMatchList(expected)
-
-      it 'returns the given element if it is a viewport', ->
-        viewportElement = $fixture('[up-viewport]')[0]
-        results = up.viewport.subtree(viewportElement)
-        expect(results).toMatchList([viewportElement])
-
-    describe 'up.viewport.around', ->
-
-      it 'returns viewports that  are either ancestors, descendants, or the given element itself', ->
-        $motherViewport = $fixture('.mother[up-viewport]')
-        $element = $motherViewport.affix('.element')
-        $childViewport = $element.affix('.child[up-viewport]')
-        $grandChildViewport = $childViewport.affix('.grand-child[up-viewport]')
-        actual = up.viewport.around($element[0])
-        expected = $motherViewport.add($childViewport).add($grandChildViewport)
-
-        expect(actual).toMatchList(expected)
-
     describe 'up.viewport.closest', ->
 
       it 'seeks upwards from the given element', ->

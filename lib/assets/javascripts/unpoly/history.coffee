@@ -155,6 +155,8 @@ up.history = do ->
     if state?.up
       url = currentLocation()
 
+      window.yyy = true
+
       replaced = up.change
         layer: 'root'        # Don't replace elements in a modal that might still be open
         peel: true           # Close all overlays

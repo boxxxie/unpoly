@@ -543,10 +543,6 @@ up.fragment = do ->
     if args.length == 1
       # up.fragment.all(selector, [options]) should lookup the selector
       # in all layers (prefering the current layer), or in options.layer if given.
-      if u.isUndefined(args[0])
-        console.log("calling up.layer.allElements(%o, %o)", args[0], options)
-        console.trace()
-
       candidates = up.layer.allElements(args[0], options)
     else
       # up.fragment.all(rootElement, selector) should find selector within

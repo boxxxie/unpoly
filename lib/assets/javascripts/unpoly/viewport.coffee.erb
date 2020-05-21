@@ -250,19 +250,18 @@ up.viewport = do ->
     restoreScrollOpt = options.restoreScroll
     focusOpt = options.focus
 
+    if window.yyy
+      debugger
+
     if focusOpt
       # Don't return since up.Focus.set() is a sync function.
       doFocus(focusOpt)
 
     else if resetScrollOpt
-      return resetScroll(u.merge(options, around: element))
+      return resetScroll(element, options)
 
     else if restoreScrollOpt
-      # If options.restoreScroll is an object, its keys map viewport selectors
-      # to scroll positions. If it is just true, we leave the scrollTops option
-      # undefined and let restoreScroll() retrieve previous scrollTops from cache.
-      givenTops = u.presence(restoreScrollOpt, u.isObject)
-      return restoreScroll(u.merge(options, around: element, scrollTops: givenTops))
+      return restoreScroll(element, options)
 
     else if hashOpt && revealOpt == true # hash revealing can be disabled with { reveal: false }
       return revealHash(hashOpt, options)
@@ -348,23 +347,6 @@ up.viewport = do ->
     # It is OK to find a viewport in a parent layer. Layers without its own viewport (like popups)
     # are scrolled by the parent layer's viewport.
     e.closest(element, allSelector())
-
-  ###**
-  Returns a jQuery collection of all the viewports contained within the
-  given selector or element.
-
-  @function up.viewport.subtree
-  @param {string|Element|jQuery} target
-  @return List<Element>
-  @internal
-  ###
-  getSubtree = (target, options = {}) ->
-    element = f.first(target, options)
-    e.subtree(element, allSelector())
-
-  getAround = (target, options = {}) ->
-    element = f.first(target, options)
-    e.list(closest(element, options), getSubtree(element, options))
 
   ###**
   Returns a list of all the viewports on the screen.
@@ -530,17 +512,18 @@ up.viewport = do ->
   You can disable this behavior by setting [`up.history.config.restoreScroll = false`](/up.history.config).
 
   @function up.viewport.restoreScroll
-  @param {Element} [options.around]
-    If set, only restores viewports that are either an ancestor
-    or descendant of the given element.
+  @param {Element} [element]
+    If given, only the viewport of the that element will be restored.
   @return {Promise}
     A promise that will be fulfilled once scroll positions have been restored.
   @experimental
   ###
-  restoreScroll = (options = {}) ->
+  restoreScroll = (args...) ->
+    options = u.extractOptions(args)
+    element = args[0] # might be undefined
     layer = up.layer.get(options)
     url = layer.location
-    viewports = if options.around then getAround(options.around, options) else getAll(options)
+    viewports = if element then [closest(element)] else getAll(options)
     scrollTopsForURL = options.scrollTops || layer.lastScrollTops.get(url) || {}
 
     up.puts 'up.viewport.restoreScroll()', 'Restoring scroll positions for URL %s to %o', u.urlWithoutHost(url), scrollTopsForURL
@@ -551,7 +534,7 @@ up.viewport = do ->
 
     Promise.all(allScrollPromises)
 
-  resetScroll: (options = {}) ->
+  resetScroll = (options = {}) ->
     return restoreScroll(u.merge(options, scrollTops: {}))
 
   ###**
@@ -784,8 +767,6 @@ up.viewport = do ->
     scroll: scroll
     config: config
     closest: closest
-    subtree: getSubtree
-    around: getAround
     all: getAll
     rootSelector: rootSelector
     get_root: getRoot

@@ -1905,7 +1905,7 @@ describe 'up.fragment', ->
         beforeEach ->
           up.history.config.enabled = true
 
-        it 'restores the scroll positions of all viewports around the target', asyncSpec (next) ->
+        it "restores the scroll positions of the target's viewport", asyncSpec (next) ->
 
           $viewport = $fixture('div[up-viewport] .element').css
             'height': '100px'
