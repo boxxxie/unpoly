@@ -268,17 +268,17 @@ module Unpoly
         params = {}
         params[version_param_name]         = serialized_version
         params[target_param_name]          = serialized_target
-        params[fail_target_param_name]     = serialized_fail_target,
-        params[validate_param_name]        = serialized_validate,
-        params[mode_param_name]            = serialized_mode,
-        params[fail_mode_param_name]       = serialized_fail_mode,
-        params[context_param_name]         = serialized_context,
+        params[fail_target_param_name]     = serialized_fail_target
+        params[validate_param_name]        = serialized_validate
+        params[mode_param_name]            = serialized_mode
+        params[fail_mode_param_name]       = serialized_fail_mode
+        params[context_param_name]         = serialized_context
         # We only send X-Up-Context back to the frontend if the context was changed by the server.
         # If we're persisting context through a redirect (using params) we need to track whether
         # it was changed before the redirect. Otherwise we wouldn't know whether it has changed
         # after the redirect.
-        params[context_changed_param_name] = serialized_context_changed,
-        params[fail_context_param_name]    = serialized_fail_context,
+        params[context_changed_param_name] = serialized_context_changed
+        params[fail_context_param_name]    = serialized_fail_context
         params[events_param_name]          = serialized_events
 
         params = params.select { |_key, value| value.present? }
