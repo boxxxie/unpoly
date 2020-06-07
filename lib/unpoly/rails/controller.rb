@@ -9,9 +9,9 @@ module Unpoly
       def self.prepended(base)
         base.helper_method :up, :up?, :unpoly, :unpoly?
         if base.respond_to?(:after_action)
-          base.after_action { up.after_action }
+          base.after_action { up.call_after_action_hooks }
         else
-          base.after_filter { up.after_action }
+          base.after_filter { up.call_after_action_hooks }
         end
       end
 

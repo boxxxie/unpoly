@@ -7,7 +7,8 @@ module Unpoly
     # Available through the `#up` method in all controllers, helpers and views.
     class Change
       include Memoized
-      include FieldRegistry
+      include FieldDefinition
+      include Hooks
 
       def initialize(controller)
         @controller = controller
@@ -26,10 +27,16 @@ module Unpoly
 
       alias_method :unpoly?, :up?
 
+      field :version, Field::String
+
       ##
       # Returns the version of Unpoly running in the browser that made
       # the request.
-      request_field :version, Field::String
+      def version
+        version_from_request
+      end
+
+      field :target, Field::String
 
       ##
       # Returns the CSS selector for a fragment that Unpoly will update in
@@ -40,7 +47,9 @@ module Unpoly
       #
       # Server-side code is free to optimize its successful response by only returning HTML
       # that matches this selector.
-      request_field :target, Field::String
+      def target
+        target_from_request
+      end
 
       ##
       # Returns whether the given CSS selector is targeted by the current fragment
@@ -56,6 +65,8 @@ module Unpoly
         test_target(target, tested_target)
       end
 
+      field :fail_target, Field::String
+
       ##
       # Returns the CSS selector for a fragment that Unpoly will update in
       # case of an failed response. Server errors or validation failures are
@@ -66,7 +77,10 @@ module Unpoly
       #
       # Server-side code is free to optimize its response by only returning HTML
       # that matches this selector.
-      request_field :fail_target, Field::String
+      #
+      def fail_target
+        fail_target_from_request
+      end
 
       ##
       # Returns whether the given CSS selector is targeted by the current fragment
@@ -107,33 +121,69 @@ module Unpoly
       # If the current form submission is a [validation](https://unpoly.com/input-up-validate),
       # this returns the name attribute of the form field that has triggered
       # the validation.
-      request_field :validate, Field::String
+      field :validate, Field::String
+
+      def validate
+        validate_from_request
+      end
 
       alias :validate_name :validate
 
-      ##
-      # TODO: Docs
-      request_field :mode, Field::String
+      field :mode, Field::String
 
       ##
       # TODO: Docs
-      request_field :fail_mode, Field::String
+      def mode
+        mode_from_request
+      end
 
       ##
       # TODO: Docs
-      request_field :mode, Field::String
+      field :fail_mode, Field::String
+
+      def fail_mode
+        fail_mode_from_request
+      end
 
       ##
       # TODO: Docs
-      request_field :context, Field::Hash
+      field :context, Field::Hash
+
+      def context
+        @context ||= context_from_request.deep_dup
+      end
+
+      after_action do
+        # Don't compare with context_from_params since that might contain
+        # a controller-side change before an earlier redirect.
+        if context != context_from_request_headers
+          write_context_to_response_headers
+        end
+      end
+
+      field :fail_context, Field::Hash
 
       ##
-      # TODO: Docs
-      request_field :fail_context, Field::Hash
+      # TODO: DOcs
+      def fail_context
+        # The protocol currently allow users to change the fail_context.
+        fail_context_from_request.freeze
+      end
 
-      ##
-      # TODO: Docs
-      response_field :events, Field::Array
+      # response_field :response_context, Field::Hash
+
+      field :events, Field::Array
+
+      def events
+        # Events are outgoing only. They wouldn't be passed as a request header.
+        # We might however pass them as params so they can survive a redirect.
+        @events ||= events_from_params
+      end
+
+      after_action do
+        # TODO: Build after_action hook
+        write_events_to_response_headers
+      end
 
       ##
       # TODO: Docs
@@ -152,17 +202,13 @@ module Unpoly
         events.push(event_plan)
       end
 
-      def after_action
-        write_response_fields
-      end
-
       ##
       # Forces Unpoly to use the given string as the document title when processing
       # this response.
       #
       # This is useful when you skip rendering the `<head>` in an Unpoly request.
       def title=(new_title)
-        # We don't make this a response_field since it belongs to *this* response
+        # We don't make this a field since it belongs to *this* response
         # and should not survive a redirect.
         response.headers['X-Up-Title'] = new_title
       end
@@ -207,46 +253,6 @@ module Unpoly
 
       delegate :request, :params, :response, to: :controller
 
-      def write_response_fields
-        response_fields.each do |field|
-          value = send(field.name)
-          if value.present?
-            response.headers[field.header_name] = field.stringify(value)
-          end
-        end
-      end
-
-      def request_field_value(field)
-        raw_value = field_value_from_headers(request.headers, field) || field_value_from_params(field)
-        field.parse(raw_value)
-      end
-
-      def response_field_value(field)
-        raw_value = field_value_from_headers(response.headers, field) || field_value_from_params(field)
-        field.parse(raw_value)
-      end
-
-      def field_value_from_params(field)
-        if up_params = params['_up']
-          name = field.param_name
-          up_params[name]
-        end
-      end
-
-      def field_value_from_headers(headers, field)
-        headers[field.header_name]
-      end
-
-      def fields_as_params
-        pairs = fields.map { |field|
-          value = send(field.name)
-          [field.param_name(full: true), field.stringify(value)]
-        }
-        params = pairs.to_h
-        params = params.select { |_key, value| value.present? }
-        params
-      end
-
       def test_target(frontend_target, tested_target)
         # We must test whether the frontend has passed us a target.
         # The user may have chosen to not reveal their target for better
@@ -264,6 +270,16 @@ module Unpoly
         else
           true
         end
+      end
+
+      def fields_as_params
+        pairs = fields.map { |field|
+          value = send(field.name)
+          [field.param_name(full: true), field.stringify(value)]
+        }
+        params = pairs.to_h
+        params = params.select { |_key, value| value.present? }
+        params
       end
 
       def append_params_to_url(url, params)
