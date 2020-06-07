@@ -8,11 +8,22 @@ module Unpoly
     class Change
       include Memoized
       include FieldDefinition
-      include Hooks
 
       def initialize(controller)
         @controller = controller
       end
+
+      # Generate helpers to get, set and cast fields in request and response headers.
+      field :version, Field::String
+      field :target, Field::String
+      field :fail_target, Field::String
+      field :validate, Field::String
+      field :mode, Field::String
+      field :fail_mode, Field::String
+      field :context, Field::Hash
+      field :context_changed, Field::Boolean
+      field :fail_context, Field::Hash
+      field :events, Field::Array
 
       ##
       # Returns whether the current request is an
@@ -27,16 +38,12 @@ module Unpoly
 
       alias_method :unpoly?, :up?
 
-      field :version, Field::String
-
       ##
       # Returns the version of Unpoly running in the browser that made
       # the request.
-      def version
+      memoize def version
         version_from_request
       end
-
-      field :target, Field::String
 
       ##
       # Returns the CSS selector for a fragment that Unpoly will update in
@@ -47,7 +54,7 @@ module Unpoly
       #
       # Server-side code is free to optimize its successful response by only returning HTML
       # that matches this selector.
-      def target
+      memoize def target
         target_from_request
       end
 
@@ -65,8 +72,6 @@ module Unpoly
         test_target(target, tested_target)
       end
 
-      field :fail_target, Field::String
-
       ##
       # Returns the CSS selector for a fragment that Unpoly will update in
       # case of an failed response. Server errors or validation failures are
@@ -78,7 +83,7 @@ module Unpoly
       # Server-side code is free to optimize its response by only returning HTML
       # that matches this selector.
       #
-      def fail_target
+      memoize def fail_target
         fail_target_from_request
       end
 
@@ -121,68 +126,48 @@ module Unpoly
       # If the current form submission is a [validation](https://unpoly.com/input-up-validate),
       # this returns the name attribute of the form field that has triggered
       # the validation.
-      field :validate, Field::String
-
-      def validate
+      memoize def validate
         validate_from_request
       end
 
       alias :validate_name :validate
 
-      field :mode, Field::String
-
       ##
       # TODO: Docs
-      def mode
+      memoize def mode
         mode_from_request
       end
 
       ##
       # TODO: Docs
-      field :fail_mode, Field::String
-
-      def fail_mode
+      memoize def fail_mode
         fail_mode_from_request
       end
 
       ##
       # TODO: Docs
-      field :context, Field::Hash
-
-      def context
-        @context ||= context_from_request.deep_dup
+      memoize def context
+        context_from_request.deep_dup
       end
 
-      after_action do
-        # Don't compare with context_from_params since that might contain
-        # a controller-side change before an earlier redirect.
-        if context != context_from_request_headers
-          write_context_to_response_headers
-        end
+      def context_changed?
+        # In case context was persisted through a redirect (using params) we also
+        # need to check _up_context_changed since we don't know whether _up_context
+        # has been changed by a previous request.
+        (@context != context_from_request) || context_changed_from_params
       end
-
-      field :fail_context, Field::Hash
 
       ##
       # TODO: DOcs
-      def fail_context
+      memoize def fail_context
         # The protocol currently allow users to change the fail_context.
         fail_context_from_request.freeze
       end
 
-      # response_field :response_context, Field::Hash
-
-      field :events, Field::Array
-
-      def events
+      memoize def events
         # Events are outgoing only. They wouldn't be passed as a request header.
         # We might however pass them as params so they can survive a redirect.
-        @events ||= events_from_params
-      end
-
-      after_action do
-        # TODO: Build after_action hook
-        write_events_to_response_headers
+        events_from_params.dup
       end
 
       ##
@@ -213,6 +198,13 @@ module Unpoly
         response.headers['X-Up-Title'] = new_title
       end
 
+      def after_action
+        write_events_to_response_headers
+        if context_changed?
+          write_context_to_response_headers
+        end
+      end
+
       def url_with_field_values(url)
         append_params_to_url(url, fields_as_params)
       end
@@ -222,21 +214,19 @@ module Unpoly
       def request_url_without_up_params
         original_url = request.original_url
 
-        if original_url =~ /\b_up(\[|%5B)/
-          uri = URI.parse(original_url)
+        original_url.include?(Field::PARAM_PREFIX) or return original_url
 
-          # This parses the query as a flat list of key/value pairs, which
-          # in this case is easier to work with than a nested hash.
-          params = Rack::Utils.parse_query(uri.query)
+        # Parse the URL to extract the ?query part below.
+        uri = URI.parse(original_url)
 
-          # We only used the up[...] params to transport headers, but we don't
-          # want them to appear in a history URL.
-          non_up_params = params.reject { |key, _value| key.starts_with?('_up[') }
+        # This parses the query as a flat list of key/value pairs.
+        params = Rack::Utils.parse_query(uri.query)
 
-          append_params_to_url(uri.path, non_up_params)
-        else
-          original_url
-        end
+        # We only used the up[...] params to transport headers, but we don't
+        # want them to appear in a history URL.
+        non_up_params = params.reject { |key, _value| key.starts_with?(Field::PARAM_PREFIX) }
+
+        append_params_to_url(uri.path, non_up_params)
       end
 
       memoize def layer
@@ -273,11 +263,22 @@ module Unpoly
       end
 
       def fields_as_params
-        pairs = fields.map { |field|
-          value = send(field.name)
-          [field.param_name(full: true), field.stringify(value)]
-        }
-        params = pairs.to_h
+        params = {}
+        params[version_param_name]         = serialized_version
+        params[target_param_name]          = serialized_target
+        params[fail_target_param_name]     = serialized_fail_target,
+        params[validate_param_name]        = serialized_validate,
+        params[mode_param_name]            = serialized_mode,
+        params[fail_mode_param_name]       = serialized_fail_mode,
+        params[context_param_name]         = serialized_context,
+        # We only send X-Up-Context back to the frontend if the context was changed by the server.
+        # If we're persisting context through a redirect (using params) we need to track whether
+        # it was changed before the redirect. Otherwise we wouldn't know whether it has changed
+        # after the redirect.
+        params[context_changed_param_name] = context_changed?.to_json,
+        params[fail_context_param_name]    = serialized_fail_context,
+        params[events_param_name]          = serialized_events
+
         params = params.select { |_key, value| value.present? }
         params
       end
