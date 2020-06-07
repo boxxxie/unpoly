@@ -150,12 +150,14 @@ module Unpoly
         context_from_request.deep_dup
       end
 
-      def context_changed?
+      def context_changed
         # In case context was persisted through a redirect (using params) we also
         # need to check _up_context_changed since we don't know whether _up_context
         # has been changed by a previous request.
         (@context != context_from_request) || context_changed_from_params
       end
+
+      alias :context_changed? :context_changed
 
       ##
       # TODO: DOcs
@@ -275,7 +277,7 @@ module Unpoly
         # If we're persisting context through a redirect (using params) we need to track whether
         # it was changed before the redirect. Otherwise we wouldn't know whether it has changed
         # after the redirect.
-        params[context_changed_param_name] = context_changed?.to_json,
+        params[context_changed_param_name] = serialized_context_changed,
         params[fail_context_param_name]    = serialized_fail_context,
         params[events_param_name]          = serialized_events
 
