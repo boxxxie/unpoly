@@ -540,7 +540,7 @@ up.element = do ->
       if textValue = u.pluckKey(attrs, 'text')
         # Use .textContent instead of .innerText, since .textContent preserves line breaks.
         rootElement.textContent = textValue
-      if contentValue = u.pluckKey(attrs, 'content')
+      if contentValue = u.pluckKey(attrs, 'inner')
         rootElement.innerHTML = contentValue
 
       setAttrs(rootElement, attrs)
@@ -708,17 +708,22 @@ up.element = do ->
     value = value.replace(/"/g, '\\"')
     "[#{attribute}=\"#{value}\"]"
 
+  trueAttributeSelector = (attribute) ->
+    "[#{attribute}]:not([#{attribute}=false])"
+
   nonUpClasses = (element) ->
     classString = element.className
     classes = u.splitValues(classString)
     u.reject classes, (klass) -> klass.match(/^up-/)
 
   ###**
+  Always creates a full document with a <html> root, even if the given `html`
+  is only a fragment.
+
   @function up.element.createDocumentFromHTML
   @internal
   ###
   createDocumentFromHTML = (html) ->
-    # IE9 cannot set innerHTML on a <html> or <head> element.
     parser = new DOMParser()
     return parser.parseFromString(html, 'text/html')
 
@@ -749,15 +754,6 @@ up.element = do ->
   ###
   getRoot = ->
     document.documentElement
-
-  ###**
-  Forces the browser to paint the given element now.
-
-  @function up.element.paint
-  @internal
-  ###
-  paint = (element) ->
-    element.offsetHeight
 
   ###**
   @function up.element.concludeCSSTransition
@@ -1202,13 +1198,13 @@ up.element = do ->
     toSelector: toSelector # practical
     isSingleton: isSingleton # internal
     attributeSelector: attributeSelector # internal
+    trueAttributeSelector: trueAttributeSelector
     createDocumentFromHTML: createDocumentFromHTML # internal
     createFromHTML: createFromHTML # practical for element creation
     createFromHtml: (args...) ->
       up.legacy.deprecated('up.element.createFromHtml', 'up.element.createFromHTML')
       up.element.createFromHTML(args...)
     get_root: getRoot # internal
-    paint: paint # internal
     concludeCSSTransition: concludeCSSTransition # internal
     hasCSSTransition: hasCSSTransition # internal
     fixedToAbsolute: fixedToAbsolute # internal
@@ -1232,3 +1228,4 @@ up.element = do ->
     upAttrs: upAttrs
     toggleAttr: toggleAttr
     isDetached: isDetached
+

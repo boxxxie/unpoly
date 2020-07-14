@@ -82,12 +82,22 @@ class up.Change.FromContent extends up.Change
       noneApplicable: => @postflightTargetNotApplicable()
 
   buildResponseDoc: ->
-    docOptions = u.copy(@options)
-    # ResponseDoc allows to pass innerHTML as { content }, but then it also
-    # requires a { target }. If no { target } is given we use the first plan's target.
-    if !docOptions.html && !docOptions.target
-      docOptions.target = @firstDefaultTarget()
+    docOptions = u.pick(@options, ['inner', 'outer', 'document', 'html'])
+
+    up.legacy.fixKey(docOptions, 'html', 'document')
+
+    if !docOptions.document # docOptions.inner || docOptions,outer
+      @options.fallback = false
+
+    if docOptions.inner
+      # ResponseDoc allows to pass innerHTML as { inner }, but then it also
+      # requires a { target }. If no { target } is given we use the first plan's target.
+      docOptions.target ||= @firstDefaultTarget()
+
     @options.responseDoc = new up.ResponseDoc(docOptions)
+
+    if docOptions.outer
+      @options.target ||= @responseDoc.rootSelector
 
   # Returns information about the change that is most likely before the request was dispatched.
   # This might change postflight if the response does not contain the desired target.
