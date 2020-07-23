@@ -45,8 +45,7 @@ class up.Change.CloseLayer extends up.Change.Removal
     @handleFocus(parent)
 
     @layer.teardownHandlers()
-
-    @layer.destroyElements(@options).then(@onMotionEnd)
+    @layer.destroyElements(@options) # this will also pass the { onRemoved } option
 
     @emitClosedEvent(parent)
 

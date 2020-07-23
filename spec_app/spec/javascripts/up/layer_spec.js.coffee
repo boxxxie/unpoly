@@ -165,14 +165,14 @@ describe 'up.layer', ->
       describe 'focus', ->
 
         it "focuses the new overlay's element", (done) ->
-          testFocus = ->
+          assertFocus = ->
             expect(up.layer.element).toBeFocused()
             done()
 
-          up.layer.open(target: '.element', onMotionEnd: testFocus)
+          up.layer.open(target: '.element', onAppeared: assertFocus)
 
         it 'focuses a CSS selector passed as { focus } option', (done) ->
-          testFocus =  ->
+          assertFocus =  ->
             child = document.querySelector('up-modal .element .child')
             expect(child).toBeGiven()
             expect(child).toBeFocused()
@@ -182,7 +182,7 @@ describe 'up.layer', ->
             target: '.element',
             content: '<div class="child">child text</div>',
             focus: '.child',
-            onMotionEnd: testFocus
+            onAppeared: assertFocus
           )
 
       describe 'history', ->

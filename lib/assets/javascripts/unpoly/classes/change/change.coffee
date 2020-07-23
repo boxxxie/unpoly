@@ -9,7 +9,12 @@ class up.Change extends up.Class
       delete options.history
 
     @options = options
-    @onMotionEnd = options.onMotionEnd || u.noop
+
+  onAppeared: ->
+    @options.onAppeared?()
+
+  onRemoved: ->
+    @options.onRemoved?()
 
   notApplicable: (reason) ->
     return up.error.notApplicable(this, reason)

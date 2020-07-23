@@ -12,24 +12,30 @@ class up.Change.DestroyFragment extends up.Change.Removal
     @log = @options.log
 
   execute: ->
+    # A variant of the logic below can also be found in up.Change.UpdateLayer.
+    # Updating (swapping) a fragment also involves destroying the old version,
+    # but the logic needs to be interwoven with the insertion logic for the new
+    # version.
+
     @layer.updateHistory(@options)
 
     # Save the parent because we sometimes emit up:fragment:destroyed
     # after removing @element.
     @parent = @element.parentNode
 
+    up.fragment.markAsDestroying(@element)
+
     if up.motion.willAnimate(@element, @animation, @options)
-      up.fragment.markAsDestroying(@element)
       # If we're animating, we resolve *before* removing the element.
       # The destroy animation will then play out, but the destroying
       # element is ignored by all up.fragment.* functions.
       @emitDestroyed()
-      @animate().then(@wipe).then(@onMotionEnd)
+      @animate().then(@wipe).then(=> @onRemoved())
     else
       # If we're not animating, we can remove the element and then resolve.
       @wipe()
       @emitDestroyed()
-      @onMotionEnd()
+      @onRemoved()
 
     # Don't wait for the animation to end.
     return Promise.resolve()

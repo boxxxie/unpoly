@@ -16,6 +16,7 @@
     - This affects: up.layer.open(), up.layer.dismiss(), up.layer.accept(), up.render(), up.destroy() ...
     - Offer up.render({ onMotionEnd }) for old-school callback
     - Check that up:fragment:inserted also happens before animation
+- Support [up-on-keep] in `<select up-keep up-on-keep="this.values = newElement.values">`
 
 - What should be up.current in
   - [up-on-opening] => remove event

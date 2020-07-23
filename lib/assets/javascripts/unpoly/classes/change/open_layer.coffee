@@ -88,7 +88,7 @@ class up.Change.OpenLayer extends up.Change.Addition
       # A11Y: Place the focus on the overlay element and setup a focus circle.
       # However, don't change focus if the layer has been closed while the animation was running.
       @handleFocus() if @layer.isOpen()
-      @onMotionEnd()
+      @onAppeared()
 
     # Emit up:layer:opened to indicate that the layer was opened successfully.
     # This is a good time for listeners to manipulate the overlay optics.
