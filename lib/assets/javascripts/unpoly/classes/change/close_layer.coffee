@@ -42,33 +42,22 @@ class up.Change.CloseLayer extends up.Change.Removal
     # Restore the history of the parent layer we just uncovered.
     parent.restoreHistory()
 
-    # Emit the "closing" event to indicate that the "close" event was not
-    # prevented and the closing animation is about to start.
-    @emitClosingEvent(parent)
-
     @handleFocus(parent)
 
     @layer.teardownHandlers()
 
-    return @layer.destroyElements(@options).then =>
-      @emitClosedEvent(parent)
+    @layer.destroyElements(@options).then(@onMotionEnd)
+
+    @emitClosedEvent(parent)
+
+    return Promise.resolve()
 
   emitCloseEvent: ->
+    # The close event is emitted on the layer that is about to close.
     return @layer.emit(
       @buildEvent("up:layer:#{@verb}"),
       callback: @layer.callback("on#{u.upperCaseFirst(@verb)}"),
       log: "Will #{@verb} #{@layer}"
-    )
-
-  emitClosingEvent: (formerParent) ->
-    verbGerund = "#{@verb}ing"
-    verbGerundUpperCaseFirst = u.upperCaseFirst(verbGerund)
-
-    return @layer.emit(
-      @buildEvent("up:layer:#{verbGerund}"),
-      currentLayer: formerParent,
-      callback: @layer.callback("on#{verbGerundUpperCaseFirst}"),
-      log: "#{verbGerundUpperCaseFirst} #{@layer}"
     )
 
   emitClosedEvent: (formerParent) ->

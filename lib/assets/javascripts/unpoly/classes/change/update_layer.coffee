@@ -67,8 +67,11 @@ class up.Change.UpdateLayer extends up.Change.Addition
 
     swapPromises = @steps.map(@executeStep)
 
-    return Promise.all(swapPromises).then =>
+    Promise.all(swapPromises).then =>
       @abortWhenLayerClosed()
+      @onMotionEnd()
+
+    return Promise.resolve()
 
   executeStep: (step) =>
     # When the server responds with an error, or when the request method is not
