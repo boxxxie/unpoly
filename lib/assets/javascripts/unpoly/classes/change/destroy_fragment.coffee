@@ -30,12 +30,12 @@ class up.Change.DestroyFragment extends up.Change.Removal
       # The destroy animation will then play out, but the destroying
       # element is ignored by all up.fragment.* functions.
       @emitDestroyed()
-      @animate().then(@wipe).then(=> @onRemoved())
+      @animate().then(@wipe).then(=> @onMotionEnd())
     else
       # If we're not animating, we can remove the element and then resolve.
       @wipe()
       @emitDestroyed()
-      @onRemoved()
+      @onMotionEnd()
 
     # Don't wait for the animation to end.
     return Promise.resolve()

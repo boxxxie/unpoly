@@ -224,9 +224,9 @@ class up.Layer.Overlay extends up.Layer
   @param {string|Function<Element>} [options.animation=this.closeAnimation]
   @param {number} [options.duration=this.closeDuration]
   @param {string} [options.easing=this.closeEasing]
-  @param {Function} [options.onRemoved]
-    A callback that will run when the elements have been removed from the DOM.
-    If the destruction is animated, the callback will run after the animation has finished.
+  @param {Function} [options.onMotionEnd]
+    A callback that will run when the destroy animation has ended and
+    layer elements have been removed from the DOM.
   @return {Promise}
     A resolved promise.
   @private

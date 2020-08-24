@@ -10,11 +10,8 @@ class up.Change extends up.Class
 
     @options = options
 
-  onAppeared: ->
-    @options.onAppeared?()
-
-  onRemoved: ->
-    @options.onRemoved?()
+  onMotionEnd: ->
+    @options.onMotionEnd?()
 
   notApplicable: (reason) ->
     return up.error.notApplicable(this, reason)

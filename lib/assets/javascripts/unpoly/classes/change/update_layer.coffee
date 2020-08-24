@@ -74,8 +74,7 @@ class up.Change.UpdateLayer extends up.Change.Addition
 
     Promise.all(swapPromises).then =>
       @abortWhenLayerClosed()
-      @onRemoved()
-      @onAppeared()
+      @onMotionEnd()
 
     return Promise.resolve()
 
