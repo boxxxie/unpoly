@@ -512,6 +512,7 @@ up.form = do ->
     return switcher or up.fail('Could not find [up-switch] field for %o', target)
 
   closestContainer = (element) ->
+    console.log("Closest container for %o is %o (selector %o)", element, e.closest(element, "form, #{up.layer.anySelector()}"), "form, #{up.layer.anySelector()}")
     e.closest(element, "form, #{up.layer.anySelector()}")
 
   focusedField = ->
@@ -814,11 +815,17 @@ up.form = do ->
     This defaults to a fieldset or form group around the changing field.
   @stable
   ###
-  up.on 'change', '[up-validate]', (event) ->
-    # Even though [up-validate] may be used on either an entire form or an individual input,
-    # the change event will trigger on a given field.
-    field = findFields(event.target)[0]
-    up.log.muteRejection validate(field)
+#  up.on 'change', '[up-validate]', (event) ->
+#    # Even though [up-validate] may be used on either an entire form or an individual input,
+#    # the change event will trigger on a given field.
+#    field = findFields(event.target)[0]
+#    up.log.muteRejection validate(field)
+
+  up.compiler 'input[up-validate], form[up-validate] input', (field) ->
+    console.log("Compiling up-validate field %o (detached: %o)", field, e.isDetached(field))
+    return up.observe field, ->
+      reteurn if e.isDetached(field)
+      up.log.muteRejection validate(field)
 
   ###**
   Show or hide elements when a `<select>` or `<input>` has a given value.

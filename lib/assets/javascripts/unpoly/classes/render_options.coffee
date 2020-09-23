@@ -80,6 +80,7 @@ up.RenderOptions = do ->
   # if { navigate: false } is given.
   NO_NAVIGATE_DEFAULTS = {
     history: false
+    focus: 'keep'
   }
 
   navigateDefaults = (options) ->
