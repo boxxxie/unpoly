@@ -893,16 +893,6 @@ up.element = do ->
     if json = element.getAttribute?(attribute)?.trim()
       JSON.parse(json)
 
-  callbackAttr = (link, attr, exposedKeys = []) ->
-    if code = link.getAttribute(attr)
-      # Allow callbacks to refer to an exposed property directly instead of through `event.value`.
-      callback = new Function('event', exposedKeys..., code)
-      # Emulate the behavior of the `onclick` attribute,
-      # where `this` refers to the clicked element.
-      return (event) ->
-        exposedValues = u.values(u.pick(event, exposedKeys))
-        callback.call(link, event, exposedValues...)
-
   ###**
   Temporarily sets the inline CSS styles on the given element.
 

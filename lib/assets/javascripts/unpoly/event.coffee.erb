@@ -55,11 +55,7 @@ up.event = do ->
   u = up.util
   e = up.element
 
-  reset = ->
-    # Resets the list of registered event listeners to the
-    # moment when the framework was booted.
-    for element in [window, document, e.root, document.body]
-      up.EventListener.unbindNonDefault(element)
+  actions = new up.Config()
 
   ###**
   Listens to a [DOM event](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Events)
@@ -444,12 +440,74 @@ up.event = do ->
     u.assign(forkedEvent, eventProps)
     up.emit(element, forkedEvent)
 
-#  abortable = ->
-#    signal = document.createElement('up-abort-signal')
-#    abort = -> up.emit(signal, 'abort')
-#    [abort, signal]
+  registerAction = (name, fn) ->
+    actions[name] = fn
+
+  getAction = (name) ->
+    return actions[name] or up.fail('Unknown action: ' + name)
+
+
+  ACTION_NAME_PATTERN = /^[\w\-\.]+$/
+
+  functionForAttrValue = (value, argNames) ->
+    if ACTION_NAME_PATTERN.test(value)
+      return getAction(value)
+    else
+      return new Function(argNames..., value)
+
+  actionAttr = (link, attr, paramNames = [], processArgs = u.identity) ->
+    if value = link.getAttribute(attr)
+      fn = null
+
+      return (args...) ->
+        args = processArgs(args)
+
+        # Retrieve the function lazily in case the user defines the referred action
+        # in a <script> tag below the referring link.
+        fn ||= functionForAttrValue(value, paramNames)
+
+        # Emulate the behavior of the `onclick` attribute, where `this` refers to the clicked element.
+        fn.call(link, args...)
+
+  actionAttr = (link, attr, options) ->
+    options = u.options(argNames: ['event'])
+
+    if value = link.getAttribute(attr)
+      fn = null
+
+      return (args...) ->
+        if keys = options.exposeKeys
+          event = args[0]
+          # Allow callbacks to refer to an exposed property directly instead of through `event.key`.
+          exposedValues = u.values(u.pick(event, keys))
+          args = [event, exposedValues...]
+
+        args = processArgs(args)
+
+        # Retrieve the function lazily in case the user defines the referred action asynchronously.
+        fn ||= functionForAttrValue(value, options.argNames)
+
+        # Emulate the behavior of the `onclick` attribute, where `this` refers to the clicked element.
+        fn.call(link, args...)
+
+  exposingActionAttr = (link, attr, exposedKeys = []) ->
+    appendExposedValues = (args) ->
+      event = args[0]
+      # Allow callbacks to refer to an exposed property directly instead of through `event.key`.
+      exposedValues = u.values(u.pick(event, exposedKeys))
+      return [event, exposedValues...]
+
+    functionAttr(link, attr, ['event', exposedKeys...], appendExposedValues)
 
   bind 'up:click', 'a[up-emit]', executeEmitAttr
+
+  reset = ->
+    # Resets the list of registered event listeners to the
+    # moment when the framework was booted.
+    for element in [window, document, e.root, document.body]
+      up.EventListener.unbindNonDefault(element)
+
+    actions.reset()
 
   bind 'up:framework:reset', reset
 
@@ -467,11 +525,14 @@ up.event = do ->
   isUnmodified: isUnmodified
   fork: fork
   keyModifiers: keyModifiers
+  action: registerAction
+  getAction: getAction
 
 up.on = up.event.on
 up.$on = up.event.$on
 up.off = up.event.off
 up.$off = up.event.off # it's the same as up.off()
 up.emit = up.event.emit
+up.action = up.event.action
 
 up.legacy.renamedPackage 'bus', 'event'
