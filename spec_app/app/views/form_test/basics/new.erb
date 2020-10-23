@@ -5,6 +5,8 @@
 
     <%= form_tag "/form_test/basic", method: :post, 'up-target' => '.result' do %>
 
+      <!--
+
       <div class="form-group">
         <label for="text-param">input[type=text]</label>
         <input type="text" name="text-param" value="text-value" class="form-control" id="text-param">
@@ -39,6 +41,10 @@
 
       <button type="submit" class="btn btn-primary" name="button-param" value="accept">Accept</button>
       <button type="submit" class="btn btn-secondary" name="button-param" value="reject">Reject</button>
+
+      -->
+
+      <button type="submit" class="btn btn-primary">Submit empty</button>
 
     <% end %>
 

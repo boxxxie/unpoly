@@ -800,6 +800,30 @@ describe 'up.form', ->
             expect('.target').toHaveText('old target text')
             expect('.my-form').toHaveText('new form text')
 
+      it 'sets a Content-Type for the request when submitting an empty form (bugfix)', asyncSpec (next) ->
+        $form = $fixture('form.my-form[action="/form-target"][up-target=".target"][up-fail-target="&"]').text('old form text')
+        $input = $form.affix('input[name="name"][value="value"]')
+        $target = $fixture('.target').text('old target text')
+
+        $submitButton = $form.affix('input[type="submit"]')
+        up.hello($form)
+
+        Trigger.clickSequence($submitButton)
+
+        next =>
+          @respondWith
+            status: 500,
+            responseText: """
+              <form class="my-form">
+                new form text
+              </form>
+              """
+
+        next =>
+          debugger
+          @lastRequest()
+          expect(true).toBe(true)
+
       describe 'submit buttons', ->
 
         it 'includes the clicked submit button in the params', asyncSpec (next) ->
