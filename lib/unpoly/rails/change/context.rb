@@ -2,8 +2,12 @@ module Unpoly
   module Rails
     class Change
       class Context
+        class CannotWrite < Error; end
+        class CannotRead < Error; end
 
-        def initialize(input, changes)
+        def initialize(api_name, input, changes)
+          @api_name = api_name
+
           # Response headers will only include changed keys
           @changes = ensure_indifferent_access(changes)
 
@@ -14,6 +18,7 @@ module Unpoly
         end
 
         def [](key)
+          ensure_readable
           if changes.key?(key)
             changes[key]
           else
@@ -22,6 +27,7 @@ module Unpoly
         end
 
         def delete(key)
+          ensure_writable
           self[key] = nil
         end
 
@@ -30,16 +36,21 @@ module Unpoly
         # up.context[]= or up.fail_context[]=. Changes in either will be pushed to the
         # client in the X-Up-Context header.
         def []=(key, value)
+          ensure_writable
           # No need to persist it through redirects (via params) anymore.
           input.delete(key)
           changes[key] = value
         end
 
         def to_h
-          input.merge(changes)
+          ensure_readable
+          input.merge(changes || {})
         end
 
         def replace(new_hash)
+          ensure_readable
+          ensure_writable
+
           new_hash = new_hash.stringify_keys
           # The frontend merges X-Up-Context updates.
           # Hence we must nilify every key that no longer exists in the
@@ -72,6 +83,22 @@ module Unpoly
           else
             raise Error, "Constructor args must be an ActiveSupport::HashWithIndifferentaccess"
           end
+        end
+
+        def readable?
+          !!input
+        end
+
+        def writable?
+          !!changes?
+        end
+
+        def ensure_readable
+          readable? or raise CannotRead, "#{api_name} is not readable"
+        end
+
+        def ensure_writable
+          writable? or raise CannotWrite, "#{api_name} cannot be changed"
         end
 
       end

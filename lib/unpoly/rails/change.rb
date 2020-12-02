@@ -23,6 +23,7 @@ module Unpoly
       field :context, Field::Hash, method: :input_context
       field :fail_context, Field::Hash, method: :input_fail_context
       field :context_changes, Field::Hash, response_header_name: 'X-Up-Context'
+      field :root_context_changes, Field::Hash, response_header_name: 'X-Up-Root-Context'
       field :events, Field::Array
       field :cache, Field::String, method: :cache_command
 
@@ -170,7 +171,7 @@ module Unpoly
       ##
       # TODO: Docs
       memoize def context
-        Context.new(input_context, unfinalized_context_changes)
+        Context.new('up.context', input_context, unfinalized_context_changes)
       end
 
       memoize def unfinalized_context_changes
@@ -194,7 +195,15 @@ module Unpoly
       ##
       # TODO: Docs
       memoize def fail_context
-        Context.new(input_fail_context, unfinalized_context_changes)
+        Context.new('up.fail_context', input_fail_context, unfinalized_context_changes)
+      end
+
+      memoize def root_context
+        Context.new('up.root_context', {}, root_context_changes)
+      end
+
+      memoize def root_context_changes
+        {}
       end
 
       memoize def events
@@ -240,6 +249,10 @@ module Unpoly
           write_context_changes_to_response_headers
         end
 
+        if root_context_changes.present?
+          write_root_context_changes_to_response_headers
+        end
+
         if target_changed?
           # Only write the target to the response if it has changed.
           # The client might have a more abstract target like :main
@@ -273,11 +286,18 @@ module Unpoly
       end
 
       memoize def layer
-        Layer.new(self, mode: mode, context: context)
+        layer = Layer.new(self, mode: mode, context: context)
+        # Support the syntax up.layer.root.context
+        layer.define_singleton_method(:root) { root_layer }
+        layer
       end
 
       memoize def fail_layer
         Layer.new(self, mode: fail_mode, context: fail_context)
+      end
+
+      memoize def root_layer
+        Layer.new(self, mode: 'root', context: root_context)
       end
 
       memoize def cache

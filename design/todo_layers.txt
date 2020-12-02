@@ -33,11 +33,50 @@ TODOs
     - dann noch das server-update vom open-layer-request dranhängen:
       - ['share', { add: 'value' }, { server: 'value']
 
+
+
+
+
 - up.layer.config.overlay.contextScope
   - use in overlay constructor
   - needs to know parent layer
+
+
+ up.context= und up.layer.context= bricht die vererbung
+
+
+
 - parse [up-context]
 - parse [up-context-scope]
+
+up:context:changed (nach update bzw. nach mergen)
+
+
+
+Noch eine Überlegung
+--------------------
+
+Es gibt kein contextScope, wir erben immer.
+
+Wenn ich etwas global setzen möchte, wie night-mode, dann:
+
+    up.context.baz = "bam"
+    up.layer.context.baz = "bam"
+    up.layer.root.context.foo = "bar"
+    up.root_context.baz = "bam"
+
+    up.root_contex[:theme] = 'night'
+
+Das schickt dann:
+
+    X-Up-Context: { foo: 'bar' }
+    X-Up-Root-Context: { baz: 'bam' }
+
+Oder gemeinsam:
+
+    X-Up-Merge-Context: { 'root': { ... }, 'current': ... }
+
+
 
 
 Manual tests
