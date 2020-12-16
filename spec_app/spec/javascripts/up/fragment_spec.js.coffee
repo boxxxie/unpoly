@@ -1468,16 +1468,34 @@ describe 'up.fragment', ->
                 expect('.element').toHaveText(/new text/)
                 done()
 
-      describe 'with { history } option', ->
+      describe 'browser location xxx', ->
 
         beforeEach ->
           up.history.config.enabled = true
 
-        describe 'browser location', ->
+        it 'does not add a history entry when no { location } option is passed', asyncSpec (next) ->
+          fixture('.target')
+          up.render('.target', url: '/path42342323')
+          next => @respondWithSelector('.target')
+          next => expect(location.href).toMatchURL(@locationBeforeExample)
 
-          it 'sets the browser location to the requested URL yyy', asyncSpec (next) ->
+        it 'does not add a history entry with { history: false } option (which also prevents updating of window title)', asyncSpec (next) ->
+          fixture('.target')
+          up.render('.target', url: '/path', history: false)
+          next => @respondWithSelector('.target')
+          next => expect(location.href).toMatchURL(@locationBeforeExample)
+
+        it 'does not add a history entry with { location: false } option', asyncSpec (next) ->
+          fixture('.target')
+          up.render('.target', url: '/path', location: false)
+          next => @respondWithSelector('.target')
+          next => expect(location.href).toMatchURL(@locationBeforeExample)
+
+        describe 'with { location: true }', ->
+
+          it 'sets the browser location to the requested URL', asyncSpec (next) ->
             fixture('.target')
-            promise = up.render('.target', url: '/path', history: true)
+            promise = up.render('.target', url: '/path', location: true)
             next =>
               @respondWithSelector('.target')
               next.await(promise)
@@ -1486,19 +1504,19 @@ describe 'up.fragment', ->
 
           it 'does not add a history entry after non-GET requests', asyncSpec (next) ->
             fixture('.target')
-            up.render('.target', url: '/path', method: 'post', history: true)
+            up.render('.target', url: '/path', method: 'post', location: true)
             next => @respondWithSelector('.target')
             next => expect(location.href).toMatchURL(@locationBeforeExample)
 
           it "detects a redirect's new URL when the server sets an X-Up-Location header", asyncSpec (next) ->
             fixture('.target')
-            up.render('.target', url: '/path', history: true)
+            up.render('.target', url: '/path', location: true)
             next => @respondWithSelector('.target', responseHeaders: { 'X-Up-Location': '/other-path' })
             next => expect(location.href).toMatchURL('/other-path')
 
           it 'adds a history entry after non-GET requests if the response includes a { X-Up-Method: "get" } header (will happen after a redirect)', asyncSpec (next) ->
             fixture('.target')
-            up.render('.target', url: '/requested-path', method: 'post', history: true)
+            up.render('.target', url: '/requested-path', method: 'post', location: true)
             next =>
               @respondWithSelector('.target', {
                 responseHeaders: {
@@ -1510,68 +1528,124 @@ describe 'up.fragment', ->
 
           it 'does add a history entry after a failed GET-request (since that is reloadable)', asyncSpec (next) ->
             fixture('.target')
-            up.render('.target', url: '/path', method: 'post', failTarget: '.target', history: true)
-            next => @respondWithSelector('.target', status: 500)
-            next => expect(location.href).toMatchURL(@locationBeforeExample)
-
-          it 'does not add a history entry with { history: false } option', asyncSpec (next) ->
-            fixture('.target')
-            up.render('.target', url: '/path', history: false)
+            up.render('.target', url: '/path', method: 'post', failTarget: '.target', location: true)
             next => @respondWithSelector('.target', status: 500)
             next => expect(location.href).toMatchURL(@locationBeforeExample)
 
           it 'adds params from a { params } option to the URL of a GET request', asyncSpec (next) ->
             fixture('.target')
-            up.render('.target', url: '/path', params: { 'foo-key': 'foo value', 'bar-key': 'bar value' }, history: true)
+            up.render('.target', url: '/path', params: { 'foo-key': 'foo value', 'bar-key': 'bar value' }, location: true)
             next => @respondWithSelector('.target')
             next => expect(location.href).toMatchURL('/path?foo-key=foo%20value&bar-key=bar%20value')
 
-          it 'does not add a history entry with { history: false } option (which also prevents updating of window title)', asyncSpec (next) ->
+        describe 'when a string is passed as { location } option', ->
+
+          it 'uses that URL as the new location after a GET request', asyncSpec (next) ->
             fixture('.target')
-            up.render('.target', url: '/path', history: false)
+            up.render('.target', url: '/path', location: '/path2')
             next => @respondWithSelector('.target')
-            next => expect(location.href).toMatchURL(@locationBeforeExample)
+            next =>
+              expect(location.href).toMatchURL('/path2')
 
-          it 'does not add a history entry with { location: false } option', asyncSpec (next) ->
+          it 'adds a history entry after a non-GET request', asyncSpec (next) ->
             fixture('.target')
-            up.render('.target', url: '/path', location: false)
+            up.render('.target', url: '/path', method: 'post', location: '/path3')
             next => @respondWithSelector('.target')
-            next => expect(location.href).toMatchURL(@locationBeforeExample)
+            next => expect(location.href).toMatchURL('/path3')
 
-          describe 'when a string is passed as { location } option', ->
+          it 'does not override the response URL after a failed request', asyncSpec (next) ->
+            fixture('.success-target')
+            fixture('.failure-target')
+            up.render('.success-target', url: '/path', location: '/path4', failLocation: true, failTarget: '.failure-target')
+            next => @respondWithSelector('.failure-target', status: 500)
+            next => expect(location.href).toMatchURL('/path')
 
-            it 'uses that URL as the new location after a GET request', asyncSpec (next) ->
-              fixture('.target')
-              up.render('.target', url: '/path', history: true, location: '/path2')
-              next => @respondWithSelector('.target')
-              next =>
-                expect(location.href).toMatchURL('/path2')
+          it 'overrides the response URL after a failed request when passed as { failLocation }', asyncSpec (next) ->
+            fixture('.success-target')
+            fixture('.failure-target')
+            up.render('.success-target', url: '/path', location: '/path5', failLocation: '/path6', failTarget: '.failure-target')
+            next => @respondWithSelector('.failure-target', status: 500)
+            next => expect(location.href).toMatchURL('/path6')
 
-            it 'adds a history entry after a non-GET request', asyncSpec (next) ->
-              fixture('.target')
-              up.render('.target', url: '/path', method: 'post', history: true, location: '/path3')
-              next => @respondWithSelector('.target')
-              next => expect(location.href).toMatchURL('/path3')
+        describe 'up:layer:location:changed event', ->
 
-            it 'does not override the response URL after a failed request', asyncSpec (next) ->
-              fixture('.success-target')
-              fixture('.failure-target')
-              up.render('.success-target', url: '/path', history: true, location: '/path4', failLocation: true, failTarget: '.failure-target')
-              next => @respondWithSelector('.failure-target', status: 500)
-              next => expect(location.href).toMatchURL('/path')
+          it 'is emited when the location changed', asyncSpec (next) ->
+            history.replaceState?({}, 'original title', '/original-url')
+            fixture('.target')
 
-            it 'overrides the response URL after a failed request when passed as { failLocation }', asyncSpec (next) ->
-              fixture('.success-target')
-              fixture('.failure-target')
-              up.render('.success-target', url: '/path', history: true, location: '/path5', failLocation: '/path6', failTarget: '.failure-target')
-              next => @respondWithSelector('.failure-target', status: 500)
-              next => expect(location.href).toMatchURL('/path6')
+            listener = jasmine.createSpy('event listener')
+            up.on('up:layer:location:changed', listener)
 
-        describe 'window title', ->
+            next ->
+              up.render('.target', location: '/new-url', content: 'new content')
+
+            next ->
+              expect(location.href).toMatchURL('/new-url')
+              expect(listener.calls.argsFor(0)[0]).toBeEvent('up:layer:location:changed', { location: '/new-url' })
+
+          it 'is not emitted when the location did not change'
+
+          it "is emitted when the layer doesn't render history"
+
+      describe 'window title xxx', ->
+
+        beforeEach ->
+          up.history.config.enabled = true
+
+        it "does not extract the title from the response or HTTP header when no { title } option is given", asyncSpec (next) ->
+          $fixture('.container').text('old container text')
+          oldTitle = document.title
+          up.render('.container', url: '/path')
+
+          next =>
+            @respondWith
+              responseHeaders:
+                'X-Up-Title': 'Title from header'
+              responseText: """
+              <html>
+                <head>
+                  <title>Title from HTML</title>
+                </head>
+                <body>
+                  <div class='container'>
+                    new container text
+                  </div>
+                </body>
+              </html>
+            """
+
+          next =>
+
+        it "does not extract the title from the response or HTTP header with { title: false }", asyncSpec (next) ->
+          $fixture('.container').text('old container text')
+          oldTitle = document.title
+          up.render('.container', url: '/path', title: false)
+
+          next =>
+            @respondWith
+              responseHeaders:
+                'X-Up-Title': 'Title from header'
+              responseText: """
+              <html>
+                <head>
+                  <title>Title from HTML</title>
+                </head>
+                <body>
+                  <div class='container'>
+                    new container text
+                  </div>
+                </body>
+              </html>
+            """
+
+          next =>
+            expect(document.title).toEqual(oldTitle)
+
+        describe 'with { title: true }', ->
 
           it "sets the document title to the response <title>", asyncSpec (next) ->
             $fixture('.container').text('old container text')
-            up.render('.container', url: '/path', history: true)
+            up.render('.container', url: '/path', title: true)
 
             next =>
               @respondWith """
@@ -1593,7 +1667,7 @@ describe 'up.fragment', ->
 
           it "sets the document title to an 'X-Up-Title' header in the response", asyncSpec (next) ->
             $fixture('.container').text('old container text')
-            up.render('.container', url: '/path', history: true)
+            up.render('.container', url: '/path', title: true)
 
             next =>
               @respondWith
@@ -1611,7 +1685,7 @@ describe 'up.fragment', ->
 
           it "prefers the X-Up-Title header to the response <title>", asyncSpec (next) ->
             $fixture('.container').text('old container text')
-            up.render('.container', url: '/path', history: true)
+            up.render('.container', url: '/path', title: true)
 
             next =>
               @respondWith
@@ -1636,7 +1710,7 @@ describe 'up.fragment', ->
 
           it "sets the document title to the response <title> with { location: false, title: true } options (bugfix)", asyncSpec (next) ->
             $fixture('.container').text('old container text')
-            up.render('.container', url: '/path', history: true, location: false, title: true)
+            up.render('.container', url: '/path', title: true, location: false)
 
             next =>
               @respondWith """
@@ -1659,7 +1733,7 @@ describe 'up.fragment', ->
           it 'does not update the document title if the response has a <title> tag inside an inline SVG image (bugfix)', asyncSpec (next) ->
             $fixture('.container').text('old container text')
             oldTitle = document.title
-            up.render('.container', url: '/path', history: true)
+            up.render('.container', url: '/path', title: true)
 
             next =>
               @respondWith """
@@ -1679,32 +1753,9 @@ describe 'up.fragment', ->
               expect($('.container')).toHaveText('new container text')
               expect(document.title).toBe(oldTitle)
 
-          it "does not extract the title from the response or HTTP header with { title: false }", asyncSpec (next) ->
-            $fixture('.container').text('old container text')
-            oldTitle = document.title
-            up.render('.container', url: '/path', history: true, title: false)
+        describe 'when a string is passed as { title } option', ->
 
-            next =>
-              @respondWith
-                responseHeaders:
-                  'X-Up-Title': 'Title from header'
-                responseText: """
-                <html>
-                  <head>
-                    <title>Title from HTML</title>
-                  </head>
-                  <body>
-                    <div class='container'>
-                      new container text
-                    </div>
-                  </body>
-                </html>
-              """
-
-            next =>
-              expect(document.title).toEqual(oldTitle)
-
-          it 'allows to pass an explicit title as { title } option', asyncSpec (next) ->
+          it 'uses that string as title, ignoring titles from the response', (next) ->
             $fixture('.container').text('old container text')
             up.render('.container', url: '/path', history: true, title: 'Title from options')
 

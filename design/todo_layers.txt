@@ -26,6 +26,37 @@ Release process
 Remaining feature work
 ======================
 
+- We should be able to pass { title: String } without { history: true }
+  - Caused by   GLOBAL_DEFAULTS = { ..., history: false }
+  - Removed it again
+  - Test that this doesnt cause history-by-default
+
+
+  wenn ich { history } in { location } und { title } kopiere, weiß ich beim layer-ohne-history-öffnen nicht mehr,
+  was seine location ist (improveHistoryValue parset nichts aus der response bei { title: false })
+
+  => speziell bei location will ich zuviel von einem einzigen attribut
+     ich will nämlich gleichzeitig wissen, ob ich die location rendere UND falls nicht, was sie gewesen wäre
+
+  => ich glaube ich habe vorher nur history: false supportet, aber title-updates haben aich { history: true } gebraucht?
+
+  ### Ansatz
+
+  Ich lasse improveHistoryValue so
+  In RenderOptions mache ich:
+
+    option.updateLocation = options.location ? options.history
+    option.updateTitle = options.title ? options.history
+
+  ### Denke ich zu kompliziert?
+
+  Ja, beim Layer öffnen will ich eine URL kennen
+
+  Aber danach erwarte ich doch nicht dass der Layer seine { location } wechselt?
+
+
+- Should history: 'auto' only update if we're changing main?
+
 - Remove unused option up.network.abort({ reason })
 
 - up.request()

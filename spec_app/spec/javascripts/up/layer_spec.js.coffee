@@ -182,7 +182,7 @@ describe 'up.layer', ->
             onFinished: assertFocus
           )
 
-      describe 'history', ->
+      describe 'history xxx', ->
 
         beforeEach ->
           up.history.config.enabled = true
@@ -218,43 +218,68 @@ describe 'up.layer', ->
             expect(up.layer.isRoot()).toBe(true)
             expect(location.href).toMatchURL('/new-root-location')
 
-        it 'does not update the browser location when the overlay is opened with { history: false }', asyncSpec (next) ->
-          originalLocation = location.href
+        describe 'with { history: false }', ->
 
-          up.layer.open(
-            target: '.element',
-            history: false,
-            location: '/modal-url'
-          )
+          it 'does not update the browser location when the overlay is opened', asyncSpec (next) ->
+            up.layer.open(
+              target: '.element',
+              history: false,
+              url: '/modal-url3'
+            )
 
-          next ->
-            expect(up.layer.isOverlay()).toBe(true)
-            expect(location.href).toMatchURL(originalLocation)
+            next =>
+              @respondWithSelector(".element", text: 'overlay text')
 
-            # We can still ask the layer what location it displays
-            expect(up.layer.location).toMatchURL('/modal-url')
+            next =>
+              expect(up.layer.isOverlay()).toBe(true)
+              expect(up.layer.current).toHaveText('overlay text')
+              expect(location.href).toMatchURL(@locationBeforeExample)
 
-        it 'does not let child layers update the browser location if an ancestor has { history: false }', asyncSpec (next) ->
-          originalLocation = location.href
-
-          up.layer.open(
-            target: '.element',
-            history: false,
-            location: '/overlay1',
-          )
-
-          next ->
-            expect(up.layer.isOverlay()).toBe(true)
-            expect(location.href).toMatchURL(originalLocation)
+          it 'still knows the layer location internally, and supports .up-current', asyncSpec (next) ->
+            history.replaceState?({}, 'original title', '/original-location')
 
             up.layer.open(
               target: '.element',
-              history: true,
-              location: '/overlay2',
+              history: false,
+              url: '/overlay-location'
             )
 
-          next ->
-            expect(location.href).toMatchURL(originalLocation)
+            next =>
+              @respondWith """
+                <div class="element">
+                  <a id="link-to-original-location" href="/original-location">link to original location</a>
+                  <a id="link-to-overlay-location" href="/overlay-location">link to overlay location</a>
+                </div>
+              """
+
+            next =>
+              expect(up.layer.isOverlay()).toBe(true)
+              expect(location.href).toMatchURL('/original-location')
+              expect(up.layer.location).toMatchURL('/overlay-location')
+              expect(up.fragment.get('#link-to-original-location')).not.toMatchSelector('.up-current')
+              expect(up.fragment.get('#link-to-overlay-location')).toMatchSelector('.up-current')
+
+          it 'does not let child layers update the browser location if an ancestor has { history: false }', asyncSpec (next) ->
+            originalLocation = location.href
+
+            up.layer.open(
+              target: '.element',
+              history: false,
+              location: '/overlay1',
+            )
+
+            next ->
+              expect(up.layer.isOverlay()).toBe(true)
+              expect(location.href).toMatchURL(originalLocation)
+
+              up.layer.open(
+                target: '.element',
+                history: true,
+                location: '/overlay2',
+              )
+
+            next ->
+              expect(location.href).toMatchURL(originalLocation)
 
       describe 'context', ->
 

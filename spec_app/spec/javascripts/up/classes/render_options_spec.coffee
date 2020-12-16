@@ -1,4 +1,4 @@
-describe 'up.RenderOptions', ->
+describe 'up.RenderOptions xxx', ->
 
   describe '.preprocess()', ->
 
@@ -38,11 +38,13 @@ describe 'up.RenderOptions', ->
 
     describe 'with { navigate: false }', ->
 
-      it 'sets additional defaults appropriate to programmatic fragment changes', ->
+      it 'does not set navigation defaults', ->
         givenOptions = { navigate: false }
         options = up.RenderOptions.preprocess(givenOptions)
 
-        expect(options.history).toBe(false)
+        expect(options.solo).toBeUndefined()
+        expect(options.feedback).toBeUndefined()
+        expect(options.fallback).toBeUndefined()
 
     it 'overrides defaults with given options', ->
       givenOptions = { navigate: false, hungry: false, source: '/other-source' }

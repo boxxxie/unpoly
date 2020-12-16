@@ -8,7 +8,7 @@ up.RenderOptions = do ->
     source: true
     saveScroll: true
     fail: 'auto'
-    history: false # will be set to 'auto' when navigating
+    # history: false # will be set to 'auto' when navigating
   }
 
   PRELOAD_OVERRIDES = {
@@ -92,6 +92,10 @@ up.RenderOptions = do ->
      # # Expand up.render({ location: '/path' }) to up.render({ history: true, location: '/path' })
      # if !result.history && (result.title || result.location)
      #   result.history = 'auto'
+
+    updateHistoryProps = !!result.history
+    result.title ?= updateHistoryProps
+    result.location ?= updateHistoryProps
 
     return result
 

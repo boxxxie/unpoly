@@ -73,7 +73,7 @@ class up.Change.OpenLayer extends up.Change.Addition
     @layer.setupHandlers()
 
     # Change history before compilation, so new fragments see the new location.
-    @handleHistory() # location event soll hier nicht mehr automatuisch fliegen
+    @handleHistory()
 
     # Remember where the element came from to support up.reload(element).
     @setSource({ newElement: @content, @source })
@@ -133,17 +133,17 @@ class up.Change.OpenLayer extends up.Change.Addition
     if @options.history != 'auto'
       return @options.history
 
-  historyOptionForFragment: ->
-    # (1) If we cannot push state for some reason, we prefer disabling history for
-    #     child layers instead of blowing up the entire stack with a full page load.
-    # (2) It might be surprising options.history is not relevant here.
-    #     Even if the layer has a { history: false } property we want to set the
-    #     initial layer.location to the fragment to enable .up-current.
-    return up.browser.canPushState()
+#  historyOptionForFragment: ->
+#    # (1) If we cannot push state for some reason, we prefer disabling history for
+#    #     child layers instead of blowing up the entire stack with a full page load.
+#    # (2) It might be surprising options.history is not relevant here.
+#    #     Even if the layer has a { history: false } property we want to set the
+#    #     initial layer.location to the fragment to enable .up-current.
+#    return up.browser.canPushState()
 
   handleHistory: ->
     @layer.parent.saveHistory()
-    @layer.updateHistory(u.merge(@options, history: @historyOptionForFragment()))
+    @layer.updateHistory(@options)
 
   handleFocus: ->
     @currentLayer.overlayFocus?.moveToBack()
