@@ -28,19 +28,31 @@ Sprockets::Standalone::RakeTask.new(:source_assets) do |task, sprockets|
   task.assets   = Unpoly::Tasks::SPROCKETS_MANIFESTS
   task.sources  = Unpoly::Tasks::SPROCKETS_SOURCES
   task.output   = Unpoly::Tasks::SPROCKETS_OUTPUT_FOLDER
-  task.compress = false
-  task.digest   = false
+  # task.compress = false
+  # task.digest   = false
   sprockets.js_compressor  = nil
   sprockets.css_compressor = nil
 end
 
 Sprockets::Standalone::RakeTask.new(:minified_assets) do |task, sprockets|
+  require 'terser'
+  Sprockets.register_compressor 'application/javascript', :terser, Terser::Compressor
+
+  module ::Sprockets
+    class Asset
+      def digest_path
+        logical_path
+      end
+    end
+  end
+
+
   task.assets   = Unpoly::Tasks::SPROCKETS_MANIFESTS
   task.sources  = Unpoly::Tasks::SPROCKETS_SOURCES
   task.output   = Unpoly::Tasks::SPROCKETS_OUTPUT_FOLDER
-  task.compress = false
-  task.digest   = false
-  sprockets.js_compressor  = :uglifier
+  # task.compress = false
+  # task.digest   = false
+  sprockets.js_compressor  = Terser.new
   sprockets.css_compressor = :sass
 end
 

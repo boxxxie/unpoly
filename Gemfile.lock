@@ -5,27 +5,23 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.12.2)
+    concurrent-ruby (1.1.7)
     execjs (2.7.0)
-    hike (1.2.3)
     json (1.8.2)
-    libv8 (3.16.14.11)
-    multi_json (1.10.1)
-    rack (1.6.0)
-    rake (10.4.2)
-    ref (1.0.5)
+    libv8 (8.4.255.0)
+    mini_racer (0.3.1)
+      libv8 (~> 8.4.255)
+    rack (2.2.3)
+    rake (13.0.3)
     sass (3.4.11)
-    sprockets (2.12.3)
-      hike (~> 1.2)
-      multi_json (~> 1.0)
-      rack (~> 1.0)
-      tilt (~> 1.1, != 1.3.0)
-    sprockets-standalone (1.2.1)
+    sprockets (3.7.2)
+      concurrent-ruby (~> 1.0)
+      rack (> 1, < 3)
+    sprockets-standalone (3.0.1)
       rake
-      sprockets (~> 2.0)
-    therubyracer (0.12.1)
-      libv8 (~> 3.16.14.0)
-      ref
-    tilt (1.4.1)
+      sprockets (~> 3.0)
+    terser (1.1.1)
+      execjs (>= 0.3.0, < 3)
     uglifier (2.7.0)
       execjs (>= 0.3.0)
       json (>= 1.8.0)
@@ -35,11 +31,13 @@ PLATFORMS
 
 DEPENDENCIES
   coffee-script
+  mini_racer
   rack
   sass
+  sprockets (~> 3.0)
   sprockets-standalone
-  therubyracer
+  terser
   uglifier
 
 BUNDLED WITH
-   1.16.1
+   1.17.3

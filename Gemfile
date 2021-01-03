@@ -1,8 +1,10 @@
 source 'https://rubygems.org'
 
 gem 'rack'
-gem 'therubyracer'
+gem 'mini_racer'
 gem 'sass'
 gem 'uglifier'
 gem 'coffee-script'
+gem 'sprockets', '~>3.0'
 gem 'sprockets-standalone'
+gem 'terser'
