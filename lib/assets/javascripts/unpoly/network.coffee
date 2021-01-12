@@ -689,7 +689,6 @@ up.network = do ->
 
   up.on 'up:framework:reset', reset
 
-  ajax: ajax
   request: makeRequest
   preload: preload
   cache: cache
@@ -705,7 +704,6 @@ up.network = do ->
   mimicLocalRequest: mimicLocalRequest
 
 up.request = up.network.request
-up.ajax = up.network.ajax
 
 # TODO: Docs for up.cache.clear
 up.cache = up.network.cache

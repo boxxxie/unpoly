@@ -1,3 +1,5 @@
+u = up.util
+
 ###**
 @module up.fragment
 ###
@@ -99,13 +101,16 @@ up.migrate.handleScrollOptions = (options) ->
       up.migrate.deprecated('Option { restoreScroll: true }', "{ scroll: 'restore' }")
       options.scroll = 'restore'
 
-up.migrate.handleRenderOptions = (options) ->
+up.migrate.handleHistoryOption = (options) ->
   if u.isString(options.history) && options.history != 'auto'
     up.migrate.warn("Passing a URL as { history } option is deprecated. Pass it as { location } instead.")
     options.location = options.history
     # Also the URL in { history } is truthy, keeping a value in there would also inherit to failOptions,
     # where it would be expanded to { failLocation }.
     options.history = 'auto'
+
+up.migrate.handleRenderOptions = (options) ->
+  up.migrate.handleHistoryOption(options)
 
   for prop in ['target', 'origin']
     if u.isJQuery(options[prop])

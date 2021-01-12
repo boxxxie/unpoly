@@ -102,5 +102,4 @@ up.RenderOptions = do ->
   return {
     preprocess,
     deriveFailOptions,
-    fixLegacyHistoryOption
   }

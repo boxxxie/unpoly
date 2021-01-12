@@ -1,3 +1,5 @@
+u = up.util
+
 ###**
 @module up.network
 ###
@@ -61,7 +63,7 @@ up.ajax = (args...) ->
   pickResponseText = (response) -> return response.text
   up.request(args...).then(pickResponseText)
 
-up.proxy.clear = ->
+up.network.clear = ->
   up.migrate.deprecated('up.proxy.clear()', 'up.cache.clear()')
   return up.cache.clear()
 

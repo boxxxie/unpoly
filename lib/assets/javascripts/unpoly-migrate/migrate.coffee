@@ -53,7 +53,7 @@ up.migrate = do ->
     formattedMessage = u.sprintf(message, args...)
     unless warnedMessages[formattedMessage]
       warnedMessages[formattedMessage] = true
-      up.log[logLevel]('DEPRECATION', message, args...)
+      up.log[config.logLevel]('DEPRECATION', message, args...)
 
   deprecated = (deprecatedExpression, replacementExpression) ->
     warn("#{deprecatedExpression} has been deprecated. Use #{replacementExpression} instead.")
@@ -71,3 +71,5 @@ up.migrate = do ->
   fixEventType: fixEventType
   fixKey: fixKey
   warn: warn
+  loaded: true
+
