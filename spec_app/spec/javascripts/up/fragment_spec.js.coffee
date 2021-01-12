@@ -4047,8 +4047,6 @@ describe 'up.fragment', ->
             next =>
               expect(constructorSpy.calls.count()).toBe(1)
 
-
-
     describe 'up.replace()', ->
 
       it 'delegates to up.navigate({ target, url }) (deprecated)', ->

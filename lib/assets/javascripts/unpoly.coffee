@@ -20,10 +20,8 @@
 #= require ./unpoly/layer
 #= require ./unpoly/link
 #= require ./unpoly/form
-#= require ./unpoly/tooltip
 #= require ./unpoly/feedback
 #= require ./unpoly/radio
 #= require ./unpoly/rails
-#= require_tree ./unpoly/deprecated
 
 up.framework.boot()
