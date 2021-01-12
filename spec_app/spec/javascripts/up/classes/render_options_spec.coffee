@@ -144,7 +144,7 @@ describe 'up.RenderOptions', ->
 
     it 'moves an URL string from the { history } option (legacy syntax) to the { location } option (next syntax)', ->
       options = { history: '/foo' }
-      warnSpy = spyOn(up.legacy, 'warn')
+      warnSpy = spyOn(up.migrate, 'warn')
 
       up.RenderOptions.fixLegacyHistoryOption(options)
 
@@ -153,7 +153,7 @@ describe 'up.RenderOptions', ->
 
     it 'does nothing for { history: "auto" }', ->
       options = { location: '/foo' }
-      warnSpy = spyOn(up.legacy, 'warn')
+      warnSpy = spyOn(up.migrate, 'warn')
 
       up.RenderOptions.fixLegacyHistoryOption(options)
 

@@ -93,7 +93,7 @@ up.layer = do ->
       return [config[mode], config.overlay, config.any]
       
   normalizeOptions = (options) ->
-    up.legacy.handleLayerOptions?(options)
+    up.migrate.handleLayerOptions?(options)
 
     if u.isGiven(options.layer) # might be the number 0, which is falsy
       if options.layer == 'swap'

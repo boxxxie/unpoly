@@ -72,7 +72,7 @@ up.RenderOptions = do ->
       PRELOAD_OVERRIDES
 
   preprocess = (options) ->
-    up.legacy.handleRenderOptions?(options)
+    up.migrate.handleRenderOptions?(options)
 
     result = u.merge(
       GLOBAL_DEFAULTS,

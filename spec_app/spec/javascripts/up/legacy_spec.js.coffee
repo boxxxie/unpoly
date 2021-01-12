@@ -1,7 +1,7 @@
 u = up.util
 $ = jQuery
 
-describe 'up.legacy', ->
+describe 'up.migrate', ->
 
   describe 'renamedPackage()', ->
 
@@ -15,13 +15,13 @@ describe 'up.legacy', ->
 
     it 'prepends a deprecation prefix to the given message and prints it to the warning log', ->
       spy = spyOn(up, 'warn')
-      up.legacy.warn("a legacy warning")
+      up.migrate.warn("a legacy warning")
       expect(spy).toHaveBeenCalledWith('DEPRECATION', 'a legacy warning')
 
     it 'only prints a given message once', ->
       spy = spyOn(up, 'warn')
-      up.legacy.warn("a very unique legacy warning")
-      up.legacy.warn("a very unique legacy warning")
+      up.migrate.warn("a very unique legacy warning")
+      up.migrate.warn("a very unique legacy warning")
       expect(spy.calls.count()).toBe(1)
 
     it 'allows substitution'

@@ -4051,7 +4051,7 @@ describe 'up.fragment', ->
 
       it 'delegates to up.navigate({ target, url }) (deprecated)', ->
         navigateSpy = up.fragment.knife.mock('navigate')
-        deprecatedSpy = spyOn(up.legacy, 'deprecated')
+        deprecatedSpy = spyOn(up.migrate, 'deprecated')
         up.replace('target', 'url')
         expect(navigateSpy).toHaveBeenCalledWith({ target: 'target', url: 'url' })
         expect(deprecatedSpy).toHaveBeenCalled()
@@ -4060,7 +4060,7 @@ describe 'up.fragment', ->
 
       it 'delegates to up.navigate({ target, document }) (deprecated)', ->
         navigateSpy = up.fragment.knife.mock('navigate')
-        deprecatedSpy = spyOn(up.legacy, 'deprecated')
+        deprecatedSpy = spyOn(up.migrate, 'deprecated')
         up.extract('target', 'document')
         expect(navigateSpy).toHaveBeenCalledWith({ target: 'target', document: 'document' })
         expect(deprecatedSpy).toHaveBeenCalled()
@@ -4160,7 +4160,7 @@ describe 'up.fragment', ->
 
       it 'allows to pass a new history entry as { history } option (deprecated)', (done) ->
         up.history.config.enabled = true
-        warnSpy = spyOn(up.legacy, 'warn')
+        warnSpy = spyOn(up.migrate, 'warn')
         $fixture('.element')
         up.destroy('.element', history: '/new-path').then ->
           u.timer 100, ->

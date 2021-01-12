@@ -378,7 +378,7 @@ up.network = do ->
       cache.clear(clearCache)
 
   preload = (args...) ->
-    up.legacy.handleNetworkPreloadArgs?(args...)
+    up.migrate.handleNetworkPreloadArgs?(args...)
 
     options = parseRequestOptions(args)
     options.preload = true
@@ -388,7 +388,7 @@ up.network = do ->
   parseRequestOptions = (args) ->
     options = u.extractOptions(args)
     options.url ||= args[0]
-    up.legacy.handleRequestOptions?(options)
+    up.migrate.handleRequestOptions?(options)
     options
 
   useCachedRequest = (request) ->

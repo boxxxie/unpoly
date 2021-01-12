@@ -19,7 +19,7 @@ class up.FragmentScrolling extends up.Record
   ]
 
   constructor: (options) ->
-    up.legacy.handleScrollOptions?(options)
+    up.migrate.handleScrollOptions?(options)
     super(options)
 
   process: ->

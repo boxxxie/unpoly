@@ -151,7 +151,7 @@ class up.Layer.Overlay extends up.Layer
     @registerClickCloser 'up-dismiss', (value, closeOptions) =>
       @dismiss(value, closeOptions)
 
-    up.legacy.registerLayerCloser?(this)
+    up.migrate.registerLayerCloser?(this)
 
     # let { userId } = await up.layer.open({ acceptEvent: 'user:show' })
     @registerEventCloser(@acceptEvent, @accept)

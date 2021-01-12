@@ -4,7 +4,7 @@ e = up.element
 class up.Tether
 
   constructor: (options) ->
-    up.legacy.handleTetherOptions?(options)
+    up.migrate.handleTetherOptions?(options)
     @anchor = options.anchor
     @align = options.align
     @position = options.position

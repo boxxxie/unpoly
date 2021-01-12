@@ -2,13 +2,13 @@
 @module up.fragment
 ###
 
-up.legacy.renamedPackage 'flow', 'fragment'
-up.legacy.renamedPackage 'dom', 'fragment'
+up.migrate.renamedPackage 'flow', 'fragment'
+up.migrate.renamedPackage 'dom', 'fragment'
 
-up.legacy.renamedProperty(up.fragment.config, 'fallbacks', 'mainTargets')
+up.migrate.renamedProperty(up.fragment.config, 'fallbacks', 'mainTargets')
 
-up.legacy.handleResponseDocOptions = (docOptions) ->
-  up.legacy.fixKey(docOptions, 'html', 'document')
+up.migrate.handleResponseDocOptions = (docOptions) ->
+  up.migrate.fixKey(docOptions, 'html', 'document')
 
 ###
 Replaces elements on the current page with corresponding elements
@@ -28,7 +28,7 @@ from a new page fetched from the server.
   Use `up.render()` instead.
 ###
 up.fragment.replace = (target, url, options) ->
-  up.legacy.deprecated('up.replace(target, url)', 'up.navigate(target, { url })')
+  up.migrate.deprecated('up.replace(target, url)', 'up.navigate(target, { url })')
   return up.navigate(u.merge(options, { target, url }))
 
 ###**
@@ -69,39 +69,39 @@ discarded, since it didn't match the selector.
 @stable
 ###
 up.fragment.extract = (target, document, options) ->
-  up.legacy.deprecated('up.extract(target, document)', 'up.navigate(target, { document })')
+  up.migrate.deprecated('up.extract(target, document)', 'up.navigate(target, { document })')
   return up.navigate(u.merge(options, { target, document }))
 
 up.first = (args...) ->
-  up.legacy.deprecated('up.first()', 'up.fragment.get()')
+  up.migrate.deprecated('up.first()', 'up.fragment.get()')
   up.fragment.get(args...)
 
-up.legacy.handleScrollOptions = (options) ->
+up.migrate.handleScrollOptions = (options) ->
   if u.isUndefined(options.scroll)
 # Rewrite deprecated { reveal } option (it had multiple variants)
     if u.isString(options.reveal)
-      up.legacy.deprecated("Option { reveal: '#{options.reveal}' }", "{ scroll: '#{options.reveal}' }")
+      up.migrate.deprecated("Option { reveal: '#{options.reveal}' }", "{ scroll: '#{options.reveal}' }")
       options.scroll = options.reveal
     else if options.reveal == true
-      up.legacy.deprecated('Option { reveal: true }', "{ scroll: 'target' }")
+      up.migrate.deprecated('Option { reveal: true }', "{ scroll: 'target' }")
       options.scroll = 'target'
     else if options.reveal == false
-      up.legacy.deprecated('Option { reveal: false }', "{ scroll: false }")
+      up.migrate.deprecated('Option { reveal: false }', "{ scroll: false }")
       options.scroll = false
 
     # Rewrite deprecated { resetScroll } option
     if u.isDefined(options.resetScroll)
-      up.legacy.deprecated('Option { resetScroll: true }', "{ scroll: 'top' }")
+      up.migrate.deprecated('Option { resetScroll: true }', "{ scroll: 'top' }")
       options.scroll = 'top'
 
     # Rewrite deprecated { restoreScroll } option
     if u.isDefined(options.restoreScroll)
-      up.legacy.deprecated('Option { restoreScroll: true }', "{ scroll: 'restore' }")
+      up.migrate.deprecated('Option { restoreScroll: true }', "{ scroll: 'restore' }")
       options.scroll = 'restore'
 
-up.legacy.handleRenderOptions = (options) ->
+up.migrate.handleRenderOptions = (options) ->
   if u.isString(options.history) && options.history != 'auto'
-    up.legacy.warn("Passing a URL as { history } option is deprecated. Pass it as { location } instead.")
+    up.migrate.warn("Passing a URL as { history } option is deprecated. Pass it as { location } instead.")
     options.location = options.history
     # Also the URL in { history } is truthy, keeping a value in there would also inherit to failOptions,
     # where it would be expanded to { failLocation }.
@@ -109,5 +109,5 @@ up.legacy.handleRenderOptions = (options) ->
 
   for prop in ['target', 'origin']
     if u.isJQuery(options[prop])
-      up.legacy.warn('Passing a jQuery collection as { %s } is deprecated. Pass it as a native element instead.', prop)
+      up.migrate.warn('Passing a jQuery collection as { %s } is deprecated. Pass it as a native element instead.', prop)
       options[prop] = up.element.get(options[prop])

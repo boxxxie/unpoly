@@ -1,7 +1,7 @@
 #= require ./unpoly/namespace
 #= require ./unpoly/util
 #= require ./unpoly/error
-#= require ./unpoly/legacy
+#= require ./unpoly/migrate_stub
 #= require ./unpoly/browser
 #= require ./unpoly/element
 #= require ./unpoly/classes/class

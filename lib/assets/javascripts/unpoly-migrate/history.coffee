@@ -2,4 +2,4 @@
 @module up.history
 ###
 
-up.legacy.renamedProperty(up.history.config, 'popTargets', 'restoreTargets')
+up.migrate.renamedProperty(up.history.config, 'popTargets', 'restoreTargets')

@@ -341,7 +341,7 @@ describe 'up.event', ->
             expect(parseDataSpy).not.toHaveBeenCalled()
 
       it 'allows to bind and unbind events by their old, deprecated name', ->
-        up.legacy.renamedEvent('up:spec:old', 'up:spec:new')
+        up.migrate.renamedEvent('up:spec:old', 'up:spec:new')
 
         warnSpy = spyOn(up, 'warn')
         listener = jasmine.createSpy('listener')
