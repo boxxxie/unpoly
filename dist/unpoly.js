@@ -13363,7 +13363,7 @@ open dialogs with sub-forms, etc. all without losing form state.
     @internal
      */
     switchTargets = function(switcher, options) {
-      var fieldValues, form, ref, targetSelector;
+      var fieldValues, form, ref, targetSelector, targets;
       if (options == null) {
         options = {};
       }
@@ -13371,7 +13371,9 @@ open dialogs with sub-forms, etc. all without losing form state.
       form = closestContainer(switcher);
       u.isPresent(targetSelector) || up.fail("No switch target given for %o", switcher);
       fieldValues = switcherValues(switcher);
-      return u.each(e.all(form, targetSelector), function(target) {
+      targets = e.all(form, targetSelector);
+      targets = targets.length != 0 ? targets : e.all(document.body, targetSelector);
+      return u.each(targets, function(target) {
         return switchTarget(target, fieldValues);
       });
     };
@@ -13412,7 +13414,7 @@ open dialogs with sub-forms, etc. all without losing form state.
       return switcher || u.fail('Could not find [up-switch] field for %o', target);
     };
     closestContainer = function(element) {
-      return e.closest(element, 'form, body');
+      return element?.form || e.closest(element, 'form, body');
     };
 
     /***
